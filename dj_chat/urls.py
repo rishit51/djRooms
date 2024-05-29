@@ -20,10 +20,10 @@ from django.conf.urls.static import static
 from django.conf import settings
 from drf_spectacular.views import SpectacularAPIView,SpectacularSwaggerView
 from rest_framework.routers import DefaultRouter
-from server.views import ServerListViewSet
+from server.views import ServerListViewSet,CategoryViewSet
 router=DefaultRouter()
 router.register('api/server/select',ServerListViewSet)
-
+router.register("api/category",CategoryViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -31,6 +31,6 @@ urlpatterns = [
     path('api/docs/schema/ui',SpectacularSwaggerView.as_view()),
 ]+router.urls
 
-
+websocket_urlpatterns=[]
 if settings.DEBUG:
     urlpatterns+=static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)

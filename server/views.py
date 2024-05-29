@@ -3,13 +3,13 @@ from django.shortcuts import render
 # Create your views here.
 
 from rest_framework.viewsets import ViewSet
-from .models import Server
+from .models import Server,Category
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError,AuthenticationFailed
-from .serializers import ServerSerializer
+from .serializers import ServerSerializer,CategorySerializer
 from django.db.models import Count
 from .schema import server_list_docs
-
+from drf_spectacular.utils import extend_schema
 class ServerListViewSet(ViewSet):        
     queryset=Server.objects.all()
     @server_list_docs
@@ -82,3 +82,9 @@ class ServerListViewSet(ViewSet):
         serializer=ServerSerializer(self.queryset,many=True,context={"with_num_members":with_num_mem})
         return Response(serializer.data)
 
+class CategoryViewSet(ViewSet):
+    queryset=Category.objects.all()
+    @extend_schema(responses=CategorySerializer)
+    def list(self,request):
+        serializer=CategorySerializer(self.queryset,many=True)
+        return Response(serializer.data)

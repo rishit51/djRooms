@@ -13,10 +13,9 @@ def server_banner_upload_path(instance,filename):
 class Category(models.Model):
     name=models.CharField(max_length=100)
     description=models.TextField(blank=True,null=True)
-    icon=models.FileField(upload_to=server_icon_upload_path,null=True,blank=True)
-    
-
+    icon=models.FileField(upload_to=category_icon_upload_path,null=True,blank=True)
     def save(self,*args,**kwargs):
+        self.name=self.name.lower()
         if self.id:
             exisiting=get_object_or_404(Category,id=self.id)
             if exisiting.icon!=self.icon:
@@ -52,15 +51,16 @@ class Server(models.Model):
 
     def save(self,*args,**kwargs):
         if self.id:
-            exisiting=get_object_or_404(Category,id=self.id)
+            exisiting=get_object_or_404(Server,id=self.id)
             if exisiting.icon!=self.icon:
                 exisiting.icon.delete(save=False)
             if exisiting.banner!=self.banner:
                 exisiting.banner.delete(save=False)
-        super(Category,self).save(*args,**kwargs)
+
+        super(Server,self).save(*args,**kwargs)
 
     @receiver(models.signals.pre_delete, sender="server.Server")
-    def _category_delete_receiver(sender,instance, **kwargs):
+    def server_delete_receiver(sender,instance, **kwargs):
         for field in instance._meta.fields:
             if field.name=="icon" or file.name=="banner":
                 file =getattr(instance,field.name)
