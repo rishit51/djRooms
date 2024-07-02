@@ -9,7 +9,8 @@ server_list_docs=extend_schema(
     parameters=[
         OpenApiParameter(
             name="category",
-            type=OpenApiTypes.STR
+            type=OpenApiTypes.STR,
+            description="Channel of the message"
         ),
         OpenApiParameter(
             name="with_num_mem",

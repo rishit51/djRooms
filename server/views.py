@@ -1,8 +1,9 @@
-from django.shortcuts import render
-
+from django.shortcuts import get_object_or_404, render
+from rest_framework import status
 # Create your views here.
-
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ViewSet
+from rest_framework.decorators import action
 from .models import Server,Category
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError,AuthenticationFailed
@@ -64,7 +65,8 @@ class ServerListViewSet(ViewSet):
         if category:
             self.queryset=self.queryset.filter(category__name=category)
         if (by_user or by_server_id) and not request.user.is_authenticated:
-            raise AuthenticationFailed(detail="Incorrect authentication credentials",code=401)
+            pass
+            # raise AuthenticationFailed(detail="Incorrect authentication credentials",code=401)
         if by_user:
             user_id=request.user.id
             self.queryset=self.queryset.filter(members=user_id)
@@ -75,7 +77,7 @@ class ServerListViewSet(ViewSet):
             try:
                 self.queryset=self.queryset.filter(id=by_server_id)
                 if not self.queryset.exists():
-                    raise ValidationError(detail=f"Server with id {by_server_id} not exists")
+                    raise ValidationError(detail=f"Server with id {by_server_id} not exists",code=400)
             except ValueError:
                 raise ValidationError(detail='',)
 
@@ -88,3 +90,33 @@ class CategoryViewSet(ViewSet):
     def list(self,request):
         serializer=CategorySerializer(self.queryset,many=True)
         return Response(serializer.data)
+    
+class ServerMembershipViewSet(ViewSet):
+    permission_classes=[IsAuthenticated]
+    def create(self,request,server_id):
+        server=get_object_or_404(Server,id=server_id)
+        if server.members.filter(id=request.user.id).exists():
+            raise ValidationError(detail="You are already a member of this server",code=409)
+        server.members.add(request.user)
+        return Response(status=status.HTTP_201_CREATED)
+
+        pass
+    @action(detail=False,methods=["DELETE"])
+    def remove_member(self,request,server_id):
+        server=get_object_or_404(Server,id=server_id)
+        if server.members.filter(id=request.user.id).exists():
+            server.members.remove(request.user)
+            return Response(status=status.HTTP_200_OK)
+        else:
+            raise ValidationError(detail="You are not a member of this server",code=403)
+        
+        
+
+    @action(detail=False,methods=["DELETE"])
+    def is_member(self,request,server_id):
+        server=get_object_or_404(Server,id=server_id)
+        if server.members.filter(id=request.user.id).exists():
+            return Response(data={'is_member':True})
+        else:
+            return Response(data={'is_member':False})
+

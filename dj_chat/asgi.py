@@ -17,10 +17,12 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'dj_chat.settings')
 django_app=get_asgi_application()
 
 from .import urls # noqa isort:skip
+from webchat.middleware import JWTMiddleWare
 
 
 
 application =ProtocolTypeRouter({
     "http":django_app,
-    "websocket":URLRouter(urls.websocket_urlpatterns),
+
+    "websocket":JWTMiddleWare(URLRouter(urls.websocket_urlpatterns)),
 })

@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/5.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
+from datetime import timedelta
 import os
 from dotenv import load_dotenv
 from pathlib import Path
@@ -46,7 +47,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'server',
-    'account'
+    'account',
+    'webchat'
 ]
 
 MIDDLEWARE = [
@@ -142,10 +144,29 @@ REST_FRAMEWORK = {
     # YOUR SETTINGS
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication',
+        'account.authenticate.JWTCookieAuthentication',
     ]
 }
-CORS_ALLOWED_ORIGINS=[
-    'http://localhost:5173',
-]
+CORS_ALLOW_CREDENTIALS = True  # Allow cookies
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",  # Add the origin you want to allow
+]
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+       
+    }
+}
+
+SIMPLE_JWT={
+    "ACCESS_TOKEN_LIFETIME":timedelta(hours=1),
+    "REFRESH_TOKEN_LIFETIME":timedelta(days=5),
+    "ACCESS_TOKEN_NAME":"access_token",
+    "REFRESH_TOKEN_NAME":"refresh_token",
+    "JWT_COOKIE_SAMESITE":"Lax"
+
+}
+
+STATIC_ROOT=os.path.join(BASE_DIR,"staticfiles")
+STATIC_URL="static/"
